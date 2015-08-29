@@ -31,11 +31,13 @@ public class EventListActivity extends Activity
      * device.
      */
     private boolean mTwoPane;
+    myDB mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
+        mDB = new myDB(this,null,null,1);
 
         if (findViewById(R.id.event_detail_container) != null) {
             // The detail container view will be present only in the
