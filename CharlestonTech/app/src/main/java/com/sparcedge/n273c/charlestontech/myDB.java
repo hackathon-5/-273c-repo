@@ -1,8 +1,11 @@
 package com.sparcedge.n273c.charlestontech;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.ArrayList;
 
 /**
  * Created by Evea on 8/29/2015.
@@ -34,5 +37,21 @@ public class myDB extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EVENTS + ";");
         onCreate(db);
+    }
+    public ArrayList<String> databaseToString(){
+        String dbString = "";
+        SQLiteDatabase db = getWritableDatabase();
+        ArrayList<String> al = new ArrayList<String>();
+        String query = "SELECT * FROM " + TABLE_EVENTS + " WHERE 1 ORDER BY " + COLUMN_EVENTNAME + " ASC;";
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+        while(!c.isAfterLast()){
+            if(c.getString(c.getColumnIndex("eventname")) != null) {
+                al.add(c.getString(c.getColumnIndex("eventname")));
+            }
+            c.moveToNext();
+        }
+        db.close();
+        return al;
     }
 }

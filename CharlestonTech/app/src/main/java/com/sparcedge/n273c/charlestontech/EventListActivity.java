@@ -1,8 +1,18 @@
 package com.sparcedge.n273c.charlestontech;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Activity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 //import com.firebase.client.Firebase;
 
@@ -32,12 +42,14 @@ public class EventListActivity extends Activity
      */
     private boolean mTwoPane;
     myDB mDB;
+    ListView lv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
         mDB = new myDB(this,null,null,1);
+        lv = (ListView) findViewById(R.id.listView);
 
         if (findViewById(R.id.event_detail_container) != null) {
             // The detail container view will be present only in the
@@ -52,6 +64,25 @@ public class EventListActivity extends Activity
                     .findFragmentById(R.id.event_list))
                     .setActivateOnItemClick(true);
         }
+        initList();
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                /*String temp = (String) lv.getItemAtPosition(position);
+                author = temp;
+                String a = "'";
+                if (author.contains(a)){
+                    author.replaceAll(a,"%20");
+                }
+                Intent intent = new Intent(HomeActivity.this, InfoActivity.class);
+                intent.putExtra("query", author);
+                HomeActivity.this.startActivity(intent);*/
+
+            }
+        });
+
+
 
 //        Firebase.setAndroidContext(this);
 
@@ -62,6 +93,13 @@ public class EventListActivity extends Activity
      * Callback method from {@link EventListFragment.Callbacks}
      * indicating that the item with the given ID was selected.
      */
+
+    private void initList() {
+        ArrayList<String> al = mDB.databaseToString();
+        yourAdapter<String> mAdapter = new yourAdapter(this, al);
+        lv.setAdapter(mAdapter);
+    }
+
     @Override
     public void onItemSelected(String id) {
         if (mTwoPane) {
@@ -83,5 +121,44 @@ public class EventListActivity extends Activity
             detailIntent.putExtra(EventDetailFragment.ARG_ITEM_ID, id);
             startActivity(detailIntent);
         }
+    }
+}
+
+class yourAdapter<String> extends BaseAdapter {
+
+    Context context;
+    ArrayList<String> data;
+    private static LayoutInflater inflater = null;
+
+    public yourAdapter(Context context, ArrayList<String> data) {
+        this.context = context;
+        this.data = data;
+        inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
+
+    @Override
+    public int getCount() {
+        return data.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return data.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View vi = convertView;
+        if (vi == null)
+            vi = inflater.inflate(R.layout.row, null);
+        TextView text = (TextView) vi.findViewById(R.id.eventName);
+        text.setText(data.get(position).toString());
+        return vi;
     }
 }
