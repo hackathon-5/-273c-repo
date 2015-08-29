@@ -2,8 +2,10 @@ package com.sparcedge.n273c.charlestontech;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +14,23 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 //import com.firebase.client.Firebase;
 
@@ -64,7 +82,6 @@ public class EventListActivity extends Activity
                     .findFragmentById(R.id.event_list))
                     .setActivateOnItemClick(true);
         }
-        initList();
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -86,6 +103,15 @@ public class EventListActivity extends Activity
 
 //        Firebase.setAndroidContext(this);
 
+            //Get Json objects
+            String data = "";
+            try {
+                data = new Getdata().execute().get();
+            }
+            catch (Exception e){
+            }
+            initList(data);
+
         // TODO: If exposing deep links into your app, handle intents here.
     }
 
@@ -94,9 +120,32 @@ public class EventListActivity extends Activity
      * indicating that the item with the given ID was selected.
      */
 
-    private void initList() {
-        ArrayList<String> al = mDB.databaseToString();
-        yourAdapter<String> mAdapter = new yourAdapter(this, al);
+    public void updatelist(ArrayList al){
+        yourAdapter<Events> mAdapter = new yourAdapter<Events>(this, al);
+        lv.setAdapter(mAdapter);
+    }
+
+    private void initList(String data) {
+        ArrayList<Events> al = new ArrayList<>();
+        try{
+            JSONArray jb = new JSONArray(data);
+            for (int i = 0; i < jb.length(); i++){
+                JSONObject jarr = jb.getJSONObject(i);
+                Date date;
+                //SimpleDateFormat parser = new SimpleDateFormat("dd-MM-yyyy");
+                //date = new parser.parse(jarr.getString("date"));
+                String website = jarr.getString("website");
+                String desc = jarr.getString("description");
+                String name = jarr.getString("name");
+                //Events ev = new Events(name, date, website, desc);
+               // al.add(ev);
+            }
+            updatelist(al);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        yourAdapter<Events> mAdapter = new yourAdapter(this, al);
         lv.setAdapter(mAdapter);
     }
 
@@ -122,15 +171,55 @@ public class EventListActivity extends Activity
             startActivity(detailIntent);
         }
     }
+
+    private class Getdata extends AsyncTask<String, Void, String> {
+        private Exception e;
+
+        protected String doInBackground(String ...query){
+            StringBuilder builder = new StringBuilder();
+            HttpClient client = new DefaultHttpClient();
+            String request = "https://fierce-caverns-8423.herokuapp.com/api/events";
+            HttpGet httpGet = new HttpGet(request);
+            try {
+                HttpResponse response = client.execute(httpGet);
+                StatusLine statusLine = response.getStatusLine();
+                int statusCode = statusLine.getStatusCode();
+                if (statusCode == 200) {
+                    HttpEntity entity = response.getEntity();
+                    InputStream content = entity.getContent();
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(content));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        builder.append(line);
+                    }
+                } else {
+                    Log.e("APP", "Failed to download file");
+                }
+            } catch (ClientProtocolException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return builder.toString();
+        }
+        protected void onPostExecute(String result){
+        }
+
+        protected void onPreExecute() {}
+
+        protected void onProgressUpdate(Void... values) {}
+    }
 }
 
-class yourAdapter<String> extends BaseAdapter {
+
+class yourAdapter<Events> extends BaseAdapter {
 
     Context context;
-    ArrayList<String> data;
+    ArrayList<Events> data;
     private static LayoutInflater inflater = null;
 
-    public yourAdapter(Context context, ArrayList<String> data) {
+    public yourAdapter(Context context, ArrayList<Events> data) {
         this.context = context;
         this.data = data;
         inflater = (LayoutInflater) context
@@ -162,3 +251,4 @@ class yourAdapter<String> extends BaseAdapter {
         return vi;
     }
 }
+

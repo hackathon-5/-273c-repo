@@ -26,12 +26,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Author Name"
+                android:text="Event Name"
                 android:id="@+id/eventName"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="0.83"
                 android:textStyle="bold"
-                android:textSize="30dp"/>
+                android:textSize="15dp"/>
 
         </LinearLayout>
 
