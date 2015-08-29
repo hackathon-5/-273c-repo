@@ -28,9 +28,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 //import com.firebase.client.Firebase;
 
@@ -131,14 +133,18 @@ public class EventListActivity extends Activity
             JSONArray jb = new JSONArray(data);
             for (int i = 0; i < jb.length(); i++){
                 JSONObject jarr = jb.getJSONObject(i);
-                Date date;
-                //SimpleDateFormat parser = new SimpleDateFormat("dd-MM-yyyy");
+
                 //date = new parser.parse(jarr.getString("date"));
+                String dateString = jarr.getString("date");
+                String[] parts = dateString.split("T");
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+                Date date = df.parse(parts[0]);
+
                 String website = jarr.getString("website");
                 String desc = jarr.getString("description");
                 String name = jarr.getString("name");
-                //Events ev = new Events(name, date, website, desc);
-               // al.add(ev);
+                Events ev = new Events(name, date, website, desc);
+                al.add(ev);
             }
             updatelist(al);
         }
